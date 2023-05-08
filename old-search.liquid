@@ -267,6 +267,41 @@
 </div>
 
 <script>
+$(document).ready(function() {
+  var $searchInput = $('.search-bar input[type="search"]');
+
+  $searchInput.on('input', function() {
+    var $this = $(this);
+    var searchTerms = $this.val().trim();
+    var modelNumber = searchTerms.match(/\b(\d+)\b/i);
+
+    if (modelNumber) {
+      // remove the model number from the search terms
+      searchTerms = searchTerms.replace(modelNumber[0], '').trim();
+
+      // perform the search for the model number
+      $.get('/search', { view: 'json', type: 'product', q: modelNumber[1] })
+        .then(function(data) {
+          var products = data.results;
+
+          // check if any products match the model number search
+          var productMatch = products.filter(function(product) {
+            return product.metafields && product.metafields.model_number && product.metafields.model_number === modelNumber[1];
+          });
+
+          // if there's a match, redirect to the product page
+          if (productMatch.length > 0) {
+            window.location.href = productMatch[0].url;
+          } else {
+            // if there's no match, perform the regular search
+            $this.val(modelNumber[1] + ' ' + searchTerms).parents('form').submit();
+          }
+        });
+    }
+  });
+});
+
+
 
   const searchLabelMain = document.querySelector('.searchLabel-main-search');
   const searchInputMain = document.querySelector(".predictive_search_input-main-search");
